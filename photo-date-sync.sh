@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# print_help
+#
+# description: Print the help message with script usage details
 print_help() {
     echo -e "
 $(c_yellow_regular NAME)
@@ -48,12 +51,18 @@ $(c_yellow_regular OPTIONS)
 "
 }
 
+# ctrl_c
+#
+# description: Handle CTRL+C interruption and exit the script gracefully
 ctrl_c() {
     echo
     warn "Script canceled with CTRL+C"
     exit_failure
 }
 
+# parse_command_line arguments
+#
+# description: Parse command-line arguments and set global variables accordingly
 parse_command_line() {
     local long_opts="input:,test,debug,help"
     local short_opts="i:tdh"
@@ -80,6 +89,9 @@ parse_command_line() {
     done
 }
 
+# init_global_variables
+#
+# description: Initialize global variables with default values if not set
 init_global_variables() {
     INPUT_DIRECTORY=${INPUT_DIRECTORY:="$(pwd)"}
     SCRIPT_DEBUG=${SCRIPT_DEBUG:="false"}
@@ -88,6 +100,9 @@ init_global_variables() {
     debug "INPUT_DIRECTORY: ${INPUT_DIRECTORY}"
 }
 
+# process_photos
+#
+# description: Process photos in the specified input directory or directories
 process_photos() {
     if [[ "${INPUT_DIRECTORY}" == *"*"* ]]; then
         # Handle wildcard case
@@ -104,6 +119,9 @@ process_photos() {
     fi
 }
 
+# process_file file
+#
+# description: Process a single photo file, extracting and updating metadata
 process_file() {
     local file="${1}"
 
@@ -162,6 +180,9 @@ process_file() {
         ${file} > /dev/null 2>&1
 }
 
+# main
+#
+# description: Main script function
 main() {
     trap ctrl_c INT
     parse_command_line "${@}"
@@ -176,7 +197,9 @@ main() {
 
 # Script helpers
 
-# color_text COLOR TYPE "TEXT"
+# color_text color type text
+#
+# description: Log messages with optional color formatting
 #
 # Colors:
 #   0 - black
@@ -216,33 +239,54 @@ c_white_underline() { color_text 7 4 "${@}"; }
 c_yellow_bold() { color_text 3 1 "${@}"; }
 c_yellow_regular() { color_text 3 0 "${@}"; }
 
+# log message
+#
+# description: Log messages with timestamp
 log() {
     echo -e "$(date '+%H:%M:%S.%3N') ${@}"
 }
 
+# debug message
+#
+# description: Log debug messages if debug mode is enabled
 debug() {
     if [[ ${SCRIPT_DEBUG} == "true" ]]; then
         log $(c_white_tint "D") "$(c_white_tint ${@})"
     fi
 }
 
+# info message
+#
+# description: Log informational messages
 info() {
     log $(c_white_bold "I") "${@}"
 }
 
+# warn message
+#
+# description: Log warning messages
 warn() {
     log $(c_yellow_bold "W") "$(c_yellow_regular ${@})"
 }
 
+# error message
+#
+# description: Log error messages
 error() {
     log $(c_red_bold "W") "$(c_red_regular ${@})"
 }
 
+# exit_failure
+#
+# description: Exit the script with a failure message
 exit_failure() {
     log $(c_red_regular "Script FAILED ($(date -ud @${SECONDS} +%H:%M:%S))")
     exit 1
 }
 
+# exit_success
+#
+# description: Exit the script with a success message
 exit_success() {
     log $(c_green_regular "Script SUCCEEDED ($(date -ud @${SECONDS} +%H:%M:%S))")
     exit 0
