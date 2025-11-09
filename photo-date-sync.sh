@@ -79,7 +79,7 @@ parse_command_line() {
 
     while true; do
         case "${1}" in
-            -i|--input) INPUT_DIRECTORY=${2};;
+            -i|--input) INPUT_DIRECTORY="${2}";;
             -t|--test) TEST_MODE="true";;
             -d|--debug) SCRIPT_DEBUG="true";;
             -h|--help) print_help; exit 0;;
@@ -93,9 +93,9 @@ parse_command_line() {
 #
 # description: Initialize global variables with default values if not set
 init_global_variables() {
-    INPUT_DIRECTORY=${INPUT_DIRECTORY:="$(pwd)"}
-    SCRIPT_DEBUG=${SCRIPT_DEBUG:="false"}
-    TEST_MODE=${TEST_MODE:="false"}
+    [[ ! "${INPUT_DIRECTORY}" ]] && INPUT_DIRECTORY="$(pwd)"
+    [[ ! "${SCRIPT_DEBUG}" ]] && SCRIPT_DEBUG="false"
+    [[ ! "${TEST_MODE}" ]] && TEST_MODE="false"
 
     debug "INPUT_DIRECTORY: ${INPUT_DIRECTORY}"
 }
@@ -223,7 +223,7 @@ main() {
 color_text() {
     local color="${1}"
     local type="${2}"
-    local text="$(echo ${@} | cut -d ' ' -f 3-)"
+    local text=$(echo "${@}" | cut -d ' ' -f 3-)
     local start_color="\e[0${type};3${color}m"
     local no_color="\e[00;00m"
 
@@ -243,15 +243,15 @@ c_yellow_regular() { color_text 3 0 "${@}"; }
 #
 # description: Log messages with timestamp
 log() {
-    echo -e "$(date '+%H:%M:%S.%3N') ${@}"
+    echo -e $(date '+%H:%M:%S.%3N') "${@}"
 }
 
 # debug message
 #
 # description: Log debug messages if debug mode is enabled
 debug() {
-    if [[ ${SCRIPT_DEBUG} == "true" ]]; then
-        log $(c_white_tint "D") "$(c_white_tint ${@})"
+    if [[ "${SCRIPT_DEBUG}" == "true" ]]; then
+        log $(c_white_tint "D") $(c_white_tint "${@}")
     fi
 }
 
