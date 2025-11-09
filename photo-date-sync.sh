@@ -89,61 +89,77 @@ init_global_variables() {
 }
 
 process_photos() {
-    for file in $(find ${INPUT_DIRECTORY} -name '*.jpg'); do
-        debug "file ${file}"
+    if [[ "${INPUT_DIRECTORY}" == *"*"* ]]; then
+        # Handle wildcard case
+        debug "Handle wildcard case"
+        for file in $(find ${INPUT_DIRECTORY} -type d -exec find {} -name '*.jpg' \;); do
+            process_file "${file}"
+        done
+    else
+        # Handle single directory case
+        debug "Handle single directory case"
+        for file in $(find ${INPUT_DIRECTORY} -name '*.jpg'); do
+            process_file "${file}"
+        done
+    fi
+}
 
-        local exif_timestamp="$(exiftool -T -DateTimeOriginal ${file})"
+process_file() {
+    local file="${1}"
 
-        local exif_year=$(echo ${exif_timestamp} | sed -E 's/([0-9]{4}):[0-9]{2}:[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
-        local exif_month=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:([0-9]{2}):[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
-        local exif_day=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:([0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
-        local exif_hour=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} ([0-9]{2}):[0-9]{2}:[0-9]{2}/\1/')
-        local exif_minute=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} [0-9]{2}:([0-9]{2}):[0-9]{2}/\1/')
-        local exif_second=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} [0-9]{2}:[0-9]{2}:([0-9]{2})/\1/')
+    debug "file ${file}"
 
-        local exif_date="${exif_year}-${exif_month}-${exif_day} ${exif_hour}:${exif_minute}:${exif_second}"
+    local exif_timestamp="$(exiftool -T -DateTimeOriginal ${file})"
 
-        local file_name=$(basename ${file})
+    local exif_year=$(echo ${exif_timestamp} | sed -E 's/([0-9]{4}):[0-9]{2}:[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
+    local exif_month=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:([0-9]{2}):[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
+    local exif_day=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:([0-9]{2}) [0-9]{2}:[0-9]{2}:[0-9]{2}/\1/')
+    local exif_hour=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} ([0-9]{2}):[0-9]{2}:[0-9]{2}/\1/')
+    local exif_minute=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} [0-9]{2}:([0-9]{2}):[0-9]{2}/\1/')
+    local exif_second=$(echo ${exif_timestamp} | sed -E 's/[0-9]{4}:[0-9]{2}:[0-9]{2} [0-9]{2}:[0-9]{2}:([0-9]{2})/\1/')
 
-        local file_year=$(echo ${file_name} | sed -E 's/.*_([0-9]{4})[0-9]{2}[0-9]{2}_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
-        local file_month=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}([0-9]{2})[0-9]{2}_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
-        local file_day=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}([0-9]{2})_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
-        local file_hour=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_([0-9]{2})[0-9]{2}[0-9]{2}.*/\1/')
-        local file_minute=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_[0-9]{2}([0-9]{2})[0-9]{2}.*/\1/')
-        local file_second=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_[0-9]{2}[0-9]{2}([0-9]{2}).*/\1/')
+    local exif_date="${exif_year}-${exif_month}-${exif_day} ${exif_hour}:${exif_minute}:${exif_second}"
 
-        local file_date="${file_year}-${file_month}-${file_day} ${file_hour}:${file_minute}:${file_second}"
+    local file_name=$(basename ${file})
 
-        local symbol="=="
+    local file_year=$(echo ${file_name} | sed -E 's/.*_([0-9]{4})[0-9]{2}[0-9]{2}_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
+    local file_month=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}([0-9]{2})[0-9]{2}_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
+    local file_day=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}([0-9]{2})_[0-9]{2}[0-9]{2}[0-9]{2}.*/\1/')
+    local file_hour=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_([0-9]{2})[0-9]{2}[0-9]{2}.*/\1/')
+    local file_minute=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_[0-9]{2}([0-9]{2})[0-9]{2}.*/\1/')
+    local file_second=$(echo ${file_name} | sed -E 's/.*_[0-9]{4}[0-9]{2}[0-9]{2}_[0-9]{2}[0-9]{2}([0-9]{2}).*/\1/')
 
-        if [[ "${exif_date}" != "${file_date}" ]]; then
-            exif_date="$(c_red_regular ${exif_date})"
-            file_date="$(c_yellow_regular ${file_date})"
-            symbol="->"
+    local file_date="${file_year}-${file_month}-${file_day} ${file_hour}:${file_minute}:${file_second}"
 
-            info "${exif_date} ${symbol} ${file_date} | ${file_name}"
-        else
-            info "${exif_date} ${symbol} ${file_date} | ${file_name}"
-            continue
-        fi
+    local symbol="=="
 
-        if [[ ${TEST_MODE} == true ]]; then
-            continue
-        fi
+    if [[ "${exif_date}" != "${file_date}" ]]; then
+        exif_date="$(c_red_regular ${exif_date})"
+        file_date="$(c_yellow_regular ${file_date})"
+        symbol="->"
 
-        local new_date="${file_year}:${file_month}:${file_day} ${file_hour}:${file_minute}:${file_second}"
+        info "${exif_date} ${symbol} ${file_date} | ${file_name}"
+    else
+        info "${exif_date} ${symbol} ${file_date} | ${file_name}"
+        return
+    fi
 
-        exiftool \
-            -overwrite_original \
-            -CreateDate="${new_date}" \
-            -ModifyDate="${new_date}" \
-            -TrackCreateDate="${new_date}" \
-            -TrackModifyDate="${new_date}" \
-            -MediaCreateDate="${new_date}" \
-            -MediaModifyDate="${new_date}" \
-            -DateTimeOriginal="${new_date}" \
-            ${file} > /dev/null 2>&1
-    done
+    if [[ ${TEST_MODE} == true ]]; then
+        return
+    fi
+
+    local new_date="${file_year}:${file_month}:${file_day} ${file_hour}:${file_minute}:${file_second}"
+
+    exiftool \
+        -overwrite_original \
+        -CreateDate="${new_date}" \
+        -ModifyDate="${new_date}" \
+        -TrackCreateDate="${new_date}" \
+        -TrackModifyDate="${new_date}" \
+        -MediaCreateDate="${new_date}" \
+        -MediaModifyDate="${new_date}" \
+        -DateTimeOriginal="${new_date}" \
+        ${file} > /dev/null 2>&1
 }
 
 main() {
